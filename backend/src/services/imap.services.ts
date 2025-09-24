@@ -1,6 +1,8 @@
 import { ImapFlow } from 'imapflow';
 import { simpleParser, ParsedMail } from 'mailparser';
 import { indexEmail } from '../config/es.config';
+import { categorizeEmail } from './ai.services';
+import { parse } from 'path';
 
 
 // Code here is inspired by https://imapflow.com/module-imapflow-ImapFlow.html
@@ -42,6 +44,8 @@ const accounts: ImapAccountConfig[] = [
     // }
 ];
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 
 // Start the IMAP sync for all accounts
 export async function startImapSync() {
@@ -80,6 +84,7 @@ async function syncAccount(account: ImapAccountConfig) {
         for await (const msg of client.fetch({ since: thirtyDaysAgo }, { uid: true, source: true })) {
             if (msg.source) {
                 const parsedEmail: ParsedMail = await simpleParser(msg.source);
+                const category = await categorizeEmail({ body_text: parsedEmail.text || '', subject: parsedEmail.subject || '' });
 
                 const emailDoc = {
                     accountId: account.id,
@@ -90,8 +95,10 @@ async function syncAccount(account: ImapAccountConfig) {
                     to: parsedEmail.to || [],
                     date: parsedEmail.date?.toISOString() || new Date().toISOString(),
                     body_text: parsedEmail.text || '',
+                    category
                 };
                 await indexEmail(emailDoc as any);
+                await delay(5000);
             }
         }
         console.log(`[${account.id}] Initial 30-day sync complete.`);
@@ -110,6 +117,7 @@ async function syncAccount(account: ImapAccountConfig) {
                 if (latestMessage && latestMessage.source) {
 
                     const parsedEmail: ParsedMail = await simpleParser(latestMessage.source);
+                    const category = await categorizeEmail({ body_text: parsedEmail.text || '', subject: parsedEmail.subject || '' });
 
                     const emailDoc = {
                         accountId: account.id,
@@ -120,9 +128,11 @@ async function syncAccount(account: ImapAccountConfig) {
                         to: parsedEmail.to || [],
                         date: parsedEmail.date?.toISOString() || new Date().toISOString(),
                         body_text: parsedEmail.text || '',
+                        category
                     };
 
                     await indexEmail(emailDoc as any);
+                    await delay(2000);
                     console.log(`[${account.id}] Successfully indexed new email: "${emailDoc.subject}"`);
                 }
             }
