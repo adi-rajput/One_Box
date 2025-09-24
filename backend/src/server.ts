@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import { indexer, searchEmails } from './config/es.config';
 import { startImapSync } from './services/imap.services';
 import cors from 'cors';
+import { run } from './config/vectordb.config';
 dotenv.config();
 
 const app = express();
@@ -103,8 +104,9 @@ app.get("/get-filtered-emails", async (req: Request, res: Response) => {
 
 async function startServer() {
     try {
+        // await run(); // Pinecone setup(Run to populate the vector DB)
         await indexer();
-        // await startImapSync();
+        await startImapSync();
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
         })
