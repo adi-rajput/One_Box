@@ -18,8 +18,30 @@ type ImapAccountConfig = {
     auth: { user: string; pass: string };
 };
 
-const IMAP_ACCOUNTS_JSON = process.env.IMAP_ACCOUNTS_JSON || '[]';
-const accounts: ImapAccountConfig[] = JSON.parse(IMAP_ACCOUNTS_JSON);
+// const IMAP_ACCOUNTS_JSON = process.env.IMAP_ACCOUNTS_JSON as string;
+const accounts: ImapAccountConfig[] = [
+    {
+        id: "gmail",
+        host: "imap.gmail.com",
+        port: 993,
+        secure: true,
+        auth: {
+            user: process.env.USER_EMAIL_1 ?? "",
+            pass: process.env.USER_PASSWORD_1 ?? ""
+        }
+    }
+    // {
+    //     id: "outlook",
+    //     host: "outlook.office365.com",
+    //     port: 993,
+    //     secure: true,
+    //     auth: {
+    //         user: "yourname@outlook.com",
+    //         pass: "your-app-password"  
+    //     }
+    // }
+];
+
 
 // Start the IMAP sync for all accounts
 export async function startImapSync() {
