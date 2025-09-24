@@ -1,7 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { Request, Response } from 'express';
-import { indexer } from './config/es.config';
+import { indexer, searchEmails } from './config/es.config';
 import { startImapSync } from './services/imap.services';
 import cors from 'cors';
 dotenv.config();
@@ -14,10 +14,31 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-app.get('/', (req: Request, res: Response) => {
+app.get('/search', async (req: Request, res: Response) => {
+    try {
+        const query = req.query.q as string;
+        // Basic validation
+        if (!query) {
+            return res.status(400).json({ error: 'Query parameter "q" is required' });
+        }
 
-    res.json({ "a": 'Hello, World!' });
+        // Query Elasticsearch
+        const esQuery = {
+            query: {
+                multi_match: {
+                    query,
+                    fields: ["subject", "body_text", "from.address", "category"]
+                }
+            }
+        };
 
+        const output = await searchEmails(esQuery);
+
+        res.status(200).json(output.hits.hits.map((hit: any) => hit._source));
+    } catch (error) {
+        console.error('Search error:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 });
 
 async function startServer() {
