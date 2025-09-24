@@ -27,7 +27,7 @@ app.get('/search', async (req: Request, res: Response) => {
             query: {
                 multi_match: {
                     query,
-                    fields: ["subject", "body_text", "from.address", "category"]
+                    fields: ["subject", "body_text", "from.address", "category", "to.address", "folder", "accountId"]
                 }
             }
         };

@@ -3,6 +3,7 @@ import { simpleParser, ParsedMail } from 'mailparser';
 import { indexEmail } from '../config/es.config';
 import { categorizeEmail } from './ai.services';
 import { parse } from 'path';
+import { sendSlackNotification, triggerWebhook } from './slack.services';
 
 
 // Code here is inspired by https://imapflow.com/module-imapflow-ImapFlow.html
@@ -87,7 +88,7 @@ async function syncAccount(account: ImapAccountConfig) {
                 const category = await categorizeEmail({ body_text: parsedEmail.text || '', subject: parsedEmail.subject || '' });
 
                 const emailDoc = {
-                    accountId: account.id,
+                    accountId: account.auth.user,
                     uid: msg.uid,
                     folder: mailbox,
                     subject: parsedEmail.subject || '',
@@ -98,6 +99,18 @@ async function syncAccount(account: ImapAccountConfig) {
                     category
                 };
                 await indexEmail(emailDoc as any);
+                if (emailDoc.category === 'Interested') {
+                    await sendSlackNotification({
+                        subject: emailDoc.subject,
+                        from: emailDoc.from, body_text:
+                            emailDoc.body_text
+                    });
+                    await triggerWebhook({
+                        subject: emailDoc.subject,
+                        from: emailDoc.from, body_text:
+                            emailDoc.body_text
+                    });
+                }
                 await delay(5000);
             }
         }
@@ -120,7 +133,7 @@ async function syncAccount(account: ImapAccountConfig) {
                     const category = await categorizeEmail({ body_text: parsedEmail.text || '', subject: parsedEmail.subject || '' });
 
                     const emailDoc = {
-                        accountId: account.id,
+                        accountId: account.auth.user,
                         uid: latestMessage.uid,
                         folder: mailbox,
                         subject: parsedEmail.subject || '',
@@ -132,6 +145,18 @@ async function syncAccount(account: ImapAccountConfig) {
                     };
 
                     await indexEmail(emailDoc as any);
+                    if (emailDoc.category === 'Interested') {
+                        await sendSlackNotification({
+                            subject: emailDoc.subject,
+                            from: emailDoc.from, body_text:
+                                emailDoc.body_text
+                        });
+                        await triggerWebhook({
+                            subject: emailDoc.subject,
+                            from: emailDoc.from, body_text:
+                                emailDoc.body_text
+                        });
+                    }
                     await delay(2000);
                     console.log(`[${account.id}] Successfully indexed new email: "${emailDoc.subject}"`);
                 }
