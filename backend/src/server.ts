@@ -5,6 +5,7 @@ import { indexer, searchEmails } from './config/es.config';
 import { startImapSync } from './services/imap.services';
 import cors from 'cors';
 import { run } from './config/vectordb.config';
+import { suggestReplies } from './services/suggestions.services';
 dotenv.config();
 
 const app = express();
@@ -102,11 +103,27 @@ app.get("/get-filtered-emails", async (req: Request, res: Response) => {
     }
 });
 
+app.get("/suggest-replies", async (req: Request, res: Response) => {
+    try {
+        const { subject, body_text } = req.query;
+        if (!body_text || (body_text as string).trim() === '') {
+            return res.status(200).json({ replies: [] });
+        }
+        const email = { subject: subject as string || '', body_text: body_text as string || '' };
+
+        const replies = await suggestReplies(email);
+        res.status(200).json({ replies });
+    } catch (error) {
+        console.error('Error in /suggest-replies endpoint:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+})
+
 async function startServer() {
     try {
         // await run(); // Pinecone setup(Run to populate the vector DB)
         await indexer();
-        await startImapSync();
+        // await startImapSync();
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
         })
