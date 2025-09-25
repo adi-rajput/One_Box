@@ -83,10 +83,8 @@ class EmailService {
     }
 
     // Generic error handler kept for potential future reuse
-    private handleApiError(_error: unknown, context: string): never {
-        // Log suppressed variable to satisfy lint without using raw error object name
-        // eslint-disable-next-line no-console
-        console.error(`${context}:`, _error);
+    private handleApiError(error: unknown, context: string): never {
+        console.error(`${context}:`, error);
         throw new Error(`${context} failed`);
     }
 }

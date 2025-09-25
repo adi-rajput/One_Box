@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Mail, AlertCircle, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Email, SearchFilters } from '../types/email.types';
 import { emailService } from '../services/email.service';
@@ -12,8 +12,6 @@ import { LoadingSpinner } from './ui/LoadingSpinner';
 
 export const EmailDashboard: React.FC = () => {
     // State management
-    // Single source for loaded emails; filtering derived separately when needed
-    const [loadedEmails, setLoadedEmails] = useState<Email[]>([]);
     const [filteredEmails, setFilteredEmails] = useState<Email[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
@@ -51,7 +49,6 @@ export const EmailDashboard: React.FC = () => {
             }
 
             // Always replace previous emails for new page
-            setLoadedEmails(newEmails);
             setFilteredEmails(newEmails);
 
             // Continue while batch size is 100
@@ -79,7 +76,6 @@ export const EmailDashboard: React.FC = () => {
         setIsSearching(true);
         try {
             const searchResults = await emailService.searchEmails(query);
-            setLoadedEmails(searchResults);
             setFilteredEmails(searchResults);
             setHasMoreEmails(false); // search not paginated
         } catch (err) {
@@ -160,12 +156,14 @@ export const EmailDashboard: React.FC = () => {
         loadEmails(1);
     }, [loadEmails]);
 
-    // Initial load
+    // Initial load only once while keeping hook dependencies correct
+    const hasInitialLoaded = useRef(false);
     useEffect(() => {
-        // Intentionally run only once on mount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        loadEmails();
-    }, []);
+        if (!hasInitialLoaded.current) {
+            loadEmails();
+            hasInitialLoaded.current = true;
+        }
+    }, [loadEmails]);
 
     useEffect(() => {
         if (filters.accountId || (filters.folder && filters.folder !== 'all')) {
