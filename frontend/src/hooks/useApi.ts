@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, DependencyList } from 'react';
 
 export interface UseApiResult<T> {
     data: T | null;
@@ -9,13 +9,13 @@ export interface UseApiResult<T> {
 
 export function useApi<T>(
     apiCall: () => Promise<T>,
-    dependencies: any[] = []
+    dependencies: DependencyList = []
 ): UseApiResult<T> {
     const [data, setData] = useState<T | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -27,11 +27,13 @@ export function useApi<T>(
         } finally {
             setLoading(false);
         }
-    };
+    }, [apiCall]);
 
     useEffect(() => {
         fetchData();
-    }, dependencies);
+        // dependencies intentionally spread to allow caller-controlled refresh triggers
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [...dependencies, fetchData]);
 
     return {
         data,

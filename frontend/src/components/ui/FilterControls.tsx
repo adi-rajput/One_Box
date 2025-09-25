@@ -7,7 +7,7 @@ const ACCOUNTS = [
     'krish.2022ug3018@iiitranchi.ac.in'
 ];
 
-const FOLDERS = [
+const FOLDERS: { value: 'all' | 'inbox' | 'sent' | 'spam'; label: string }[] = [
     { value: 'all', label: 'All Folders' },
     { value: 'inbox', label: 'Inbox' },
     { value: 'sent', label: 'Sent' },
@@ -27,7 +27,7 @@ const FOLDERS = [
     const handleFolderChange = (folder: string) => {
         onFiltersChange({
             ...filters,
-            folder: folder as any,
+            folder: folder as 'all' | 'inbox' | 'sent' | 'spam',
             page: 1
         });
     };

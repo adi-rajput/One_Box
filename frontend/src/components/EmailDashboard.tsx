@@ -12,7 +12,8 @@ import { LoadingSpinner } from './ui/LoadingSpinner';
 
 export const EmailDashboard: React.FC = () => {
     // State management
-    const [emails, setEmails] = useState<Email[]>([]);
+    // Single source for loaded emails; filtering derived separately when needed
+    const [loadedEmails, setLoadedEmails] = useState<Email[]>([]);
     const [filteredEmails, setFilteredEmails] = useState<Email[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
@@ -50,7 +51,7 @@ export const EmailDashboard: React.FC = () => {
             }
 
             // Always replace previous emails for new page
-            setEmails(newEmails);
+            setLoadedEmails(newEmails);
             setFilteredEmails(newEmails);
 
             // Continue while batch size is 100
@@ -78,7 +79,7 @@ export const EmailDashboard: React.FC = () => {
         setIsSearching(true);
         try {
             const searchResults = await emailService.searchEmails(query);
-            setEmails(searchResults);
+            setLoadedEmails(searchResults);
             setFilteredEmails(searchResults);
             setHasMoreEmails(false); // search not paginated
         } catch (err) {
@@ -159,7 +160,10 @@ export const EmailDashboard: React.FC = () => {
         loadEmails(1);
     }, [loadEmails]);
 
+    // Initial load
     useEffect(() => {
+        // Intentionally run only once on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         loadEmails();
     }, []);
 
@@ -263,7 +267,7 @@ export const EmailDashboard: React.FC = () => {
                                 )}
                                 {searchQuery && (
                                     <p className="text-xs text-orange-600 text-center">
-                                        Search results don't support pagination
+                                        Search results don&apos;t support pagination
                                     </p>
                                 )}
                             </div>
@@ -284,7 +288,7 @@ export const EmailDashboard: React.FC = () => {
                                 {searchQuery && (
                                     <div className="pt-2 border-t border-gray-100">
                                         <span className="text-xs text-blue-600">
-                                            Searching: "{searchQuery}"
+                                            Searching: &quot;{searchQuery}&quot;
                                         </span>
                                     </div>
                                 )}
@@ -324,9 +328,9 @@ export const EmailDashboard: React.FC = () => {
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">No emails found</h3>
                                 <p className="text-gray-600">
                                     {searchQuery
-                                        ? `No emails match your search for "${searchQuery}"`
+                                        ? `No emails match your search for \"${searchQuery}\"`
                                         : filters.clientSideCategory
-                                            ? `No emails match the category filter "${filters.clientSideCategory}"`
+                                            ? `No emails match the category filter \"${filters.clientSideCategory}\"`
                                             : 'Try adjusting your filters or refresh to load emails'
                                     }
                                 </p>

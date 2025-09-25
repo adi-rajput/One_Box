@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Reply, Copy, Send, Loader } from 'lucide-react';
+import { X, Reply, Copy, Send } from 'lucide-react';
 import { ReplyModalProps } from '../../types/email.types';
 import { LoadingSpinner } from './LoadingSpinner';
 
@@ -124,8 +124,8 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
                                     <div
                                         key={index}
                                         className={`border rounded-lg p-4 transition-all duration-200 cursor-pointer ${selectedReply === reply
-                                                ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+                                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                                             }`}
                                         onClick={() => setSelectedReply(reply)}
                                     >
@@ -156,7 +156,7 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
                                 <div className="text-gray-400 mb-2">
                                     <Reply className="w-8 h-8 mx-auto" />
                                 </div>
-                                <p className="text-gray-600">Click "Generate Replies" to get AI-powered suggestions</p>
+                                <p className="text-gray-600">Click &quot;Generate Replies&quot; to get AI-powered suggestions</p>
                             </div>
                         )}
 
