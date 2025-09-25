@@ -5,7 +5,10 @@ dotenv.config();
 const ES_PORT = process.env.ES_PORT || 'http://localhost:9200';
 const ES_INDEX = process.env.ES_INDEX || 'reachinbox_emails';
 
-export const es = new Client({ node: ES_PORT });
+export const es = new Client({
+    node: ES_PORT,
+    auth: { apiKey: process.env.ES_API_KEY as string }
+});
 
 export async function indexer() {
     const exists = await es.indices.exists({ index: ES_INDEX });
