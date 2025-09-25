@@ -123,7 +123,7 @@ async function startServer() {
     try {
         // await run(); // Pinecone setup(Run to populate the vector DB)
         await indexer();
-        // await startImapSync();
+        await startImapSync();
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
         })
