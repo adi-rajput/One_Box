@@ -19,19 +19,29 @@ const PORT = process.env.PORT || 3000;
 app.get('/search', async (req: Request, res: Response) => {
     try {
         const query = req.query.q as string;
-        // Basic validation
+        // accountId and folder are accepted by the client but filtering will be
+        // performed client-side on the returned top 100 results for simplicity
+        // and speed. Keep reading the params for compatibility/logging only.
+        const accountId = req.query.accountId as string | undefined;
+        const folder = req.query.folder as string | undefined;
         if (!query) {
             return res.status(400).json({ error: 'Query parameter "q" is required' });
         }
 
-        // Query Elasticsearch
-        const esQuery = {
-            query: {
-                multi_match: {
-                    query,
-                    fields: ["subject", "body_text", "from.address", "category", "to.address", "folder", "accountId"]
-                }
+        // Build a simple multi_match clause and request the top 100 hits.
+        // Do NOT apply server-side accountId/folder filters; client will
+        // filter the returned 100 results locally.
+        const mustClause: any = {
+            multi_match: {
+                query,
+                fields: ["subject", "body_text", "from.address", "category", "to.address", "folder", "accountId"]
             }
+        };
+
+        const esQuery: any = {
+            size: 100,
+            sort: [{ date: { order: "desc" } }],
+            query: mustClause
         };
 
         const output = await searchEmails(esQuery);
@@ -73,26 +83,30 @@ app.get('/get-all-email', async (req: Request, res: Response) => {
 app.get("/get-filtered-emails", async (req: Request, res: Response) => {
     try {
         const { category, accountId, folder, page = 1 } = req.query;
-        const filters: any[] = [];
+        const filtersArray: any[] = [];
         if (category) {
-            filters.push({ term: { category } });
+            filtersArray.push({ term: { category: category } });
         }
         if (accountId) {
-            filters.push({ term: { accountId } });
+            filtersArray.push({ term: { accountId: accountId } });
         }
-        if (folder) {
-            filters.push({ term: { folder } });
+        if (folder && folder !== 'all') {
+            filtersArray.push({ term: { folder: folder } });
         }
+
         const from = (Number(page) - 1) * 100;
         const esQuery: any = {
             from: from,
             size: 100,
-            bool: {
-                filters: filters
-            },
             sort: [
                 { date: { order: "desc" } }
             ]
+        };
+
+        if (filtersArray.length > 0) {
+            esQuery.query = { bool: { filter: filtersArray } };
+        } else {
+            esQuery.query = { match_all: {} };
         }
 
         const output = await searchEmails(esQuery);

@@ -7,12 +7,23 @@ const ACCOUNTS = [
     'krish.2022ug3018@iiitranchi.ac.in'
 ];
 
-const FOLDERS: { value: 'all' | 'inbox' | 'sent' | 'spam'; label: string }[] = [
-    { value: 'all', label: 'All Folders' },
-    { value: 'inbox', label: 'Inbox' },
-    { value: 'sent', label: 'Sent' },
-    { value: 'spam', label: 'Spam' }
-]; export const FilterControls: React.FC<FilterControlsProps> = ({
+const FOLDERS: { value: 'all' | 'inbox' | 'sent' | 'spam'; label: string; icon: string }[] = [
+    { value: 'all', label: 'All Folders', icon: '📁' },
+    { value: 'inbox', label: 'Inbox', icon: '📥' },
+    { value: 'sent', label: 'Sent', icon: '📤' },
+    { value: 'spam', label: 'Spam', icon: '🚫' }
+];
+
+const CATEGORIES = [
+    { value: 'all', label: 'All Categories', icon: '📋' },
+    { value: 'Interested', label: 'Interested', icon: '✅' },
+    { value: 'Not Interested', label: 'Not Interested', icon: '❌' },
+    { value: 'Spam', label: 'Spam', icon: '🚫' },
+    { value: 'Meeting Booked', label: 'Meeting Booked', icon: '📅' },
+    { value: 'Out of Office', label: 'Out of Office', icon: '🏠' }
+];
+
+export const FilterControls: React.FC<FilterControlsProps> = ({
     filters,
     onFiltersChange
 }) => {
@@ -41,105 +52,135 @@ const FOLDERS: { value: 'all' | 'inbox' | 'sent' | 'spam'; label: string }[] = [
     };
 
     return (
-        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-                <Filter className="w-4 h-4 text-black" />
-                <h3 className="font-semibold text-black">Filters</h3>
+        <div className="card p-6">
+            <div className="flex items-center gap-3 mb-6">
+                <Filter className="w-5 h-5" style={{ color: 'var(--accent-blue)' }} />
+                <h3 className="text-subheading" style={{ color: 'var(--text-primary)' }}>
+                    Filters
+                </h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="space-y-6">
                 {/* Account Filter */}
                 <div>
-                    <label className="flex items-center gap-2 text-sm font-medium text-black mb-2">
-                        <User className="w-4 h-4" />
+                    <label className="flex items-center gap-2 text-body font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
+                        <User className="w-4 h-4" style={{ color: 'var(--accent-blue)' }} />
                         Account
                     </label>
                     <select
                         value={filters.accountId || 'all'}
                         onChange={(e) => handleAccountChange(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 text-black"
+                        className="form-input"
+                        aria-label="Filter by account"
                     >
-                        <option value="all">All Accounts</option>
+                        <option value="all">📧 All Accounts</option>
                         {ACCOUNTS.map((account) => (
                             <option key={account} value={account}>
-                                {account}
+                                👤 {account}
                             </option>
                         ))}
                     </select>
                 </div>
 
+                {/* Folder Filter */}
                 <div>
-                    <label className="flex items-center gap-2 text-sm font-medium text-black mb-2">
-                        <Folder className="w-4 h-4" />
+                    <label className="flex items-center gap-2 text-body font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
+                        <Folder className="w-4 h-4" style={{ color: 'var(--accent-green)' }} />
                         Folder
                     </label>
                     <select
                         value={filters.folder || 'all'}
                         onChange={(e) => handleFolderChange(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 text-black"
+                        className="form-input"
+                        aria-label="Filter by folder"
                     >
                         {FOLDERS.map((folder) => (
                             <option key={folder.value} value={folder.value}>
-                                {folder.label}
+                                {folder.icon} {folder.label}
                             </option>
                         ))}
                     </select>
                 </div>
 
+                {/* Category Filter */}
                 <div>
-                    <label className="flex items-center gap-2 text-sm font-medium text-black mb-2">
-                        <Tag className="w-4 h-4" />
+                    <label className="flex items-center gap-2 text-body font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
+                        <Tag className="w-4 h-4" style={{ color: 'var(--accent-orange)' }} />
                         Category
                     </label>
                     <select
                         value={filters.clientSideCategory || 'all'}
                         onChange={(e) => handleCategoryChange(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 text-black"
+                        className="form-input"
+                        aria-label="Filter by category"
                     >
-                        <option value="all">All Categories</option>
-                        <option value="Interested">Interested</option>
-                        <option value="Not Interested">Not Interested</option>
-                        <option value="Spam">Spam</option>
-                        <option value="Meeting Booked">Meeting Booked</option>
-                        <option value="Out of Office">Out of Office</option>
+                        {CATEGORIES.map((category) => (
+                            <option key={category.value} value={category.value}>
+                                {category.icon} {category.label}
+                            </option>
+                        ))}
                     </select>
                 </div>
             </div>
 
             {/* Active Filters Display */}
             {(filters.accountId || (filters.folder && filters.folder !== 'all') || filters.clientSideCategory) && (
-                <div className="mt-4 pt-3 border-t border-gray-200">
+                <div className="mt-6 pt-6 border-t" style={{ borderColor: 'var(--border-light)' }}>
+                    <h4 className="text-body font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>
+                        🔧 Active Filters
+                    </h4>
                     <div className="flex flex-wrap gap-2">
                         {filters.accountId && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {filters.accountId}
+                            <span
+                                className="inline-flex items-center px-3 py-1 rounded-full text-caption font-medium"
+                                style={{
+                                    background: 'var(--accent-blue-light)',
+                                    color: 'var(--accent-blue)'
+                                }}
+                            >
+                                👤 {filters.accountId.split('@')[0]}
                                 <button
                                     onClick={() => handleAccountChange('all')}
-                                    className="ml-1 text-blue-600 hover:text-blue-800"
+                                    className="ml-2 p-0.5 rounded-full hover:bg-white/20 transition-colors"
+                                    aria-label="Remove account filter"
                                 >
-                                    ×
+                                    ✕
                                 </button>
                             </span>
                         )}
                         {filters.folder && filters.folder !== 'all' && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                {FOLDERS.find(f => f.value === filters.folder)?.label}
+                            <span
+                                className="inline-flex items-center px-3 py-1 rounded-full text-caption font-medium"
+                                style={{
+                                    background: 'var(--accent-green-light)',
+                                    color: 'var(--accent-green)'
+                                }}
+                            >
+                                {FOLDERS.find(f => f.value === filters.folder)?.icon} {FOLDERS.find(f => f.value === filters.folder)?.label}
                                 <button
                                     onClick={() => handleFolderChange('all')}
-                                    className="ml-1 text-green-600 hover:text-green-800"
+                                    className="ml-2 p-0.5 rounded-full hover:bg-white/20 transition-colors"
+                                    aria-label="Remove folder filter"
                                 >
-                                    ×
+                                    ✕
                                 </button>
                             </span>
                         )}
                         {filters.clientSideCategory && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                Category: {filters.clientSideCategory}
+                            <span
+                                className="inline-flex items-center px-3 py-1 rounded-full text-caption font-medium"
+                                style={{
+                                    background: 'var(--accent-orange-light)',
+                                    color: 'var(--accent-orange)'
+                                }}
+                            >
+                                {CATEGORIES.find(c => c.value === filters.clientSideCategory)?.icon} {filters.clientSideCategory}
                                 <button
                                     onClick={() => handleCategoryChange('all')}
-                                    className="ml-1 text-purple-600 hover:text-purple-800"
+                                    className="ml-2 p-0.5 rounded-full hover:bg-white/20 transition-colors"
+                                    aria-label="Remove category filter"
                                 >
-                                    ×
+                                    ✕
                                 </button>
                             </span>
                         )}

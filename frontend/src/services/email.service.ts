@@ -1,6 +1,6 @@
 import { Email, SearchFilters, ReplyResponse } from '../types/email.types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 class EmailService {
     async getAllEmails(page: number = 1): Promise<Email[]> {
@@ -26,6 +26,7 @@ class EmailService {
             }
 
             const response = await fetch(`${API_BASE_URL}/search?q=${encodeURIComponent(query)}`);
+            console.log('Search response:', response);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -45,7 +46,12 @@ class EmailService {
 
             if (filters.accountId) params.append('accountId', filters.accountId);
             if (filters.folder && filters.folder !== 'all') params.append('folder', filters.folder);
-            if (filters.category) params.append('category', filters.category);
+            const categoryToSend = (filters.category && filters.category.trim())
+                ? filters.category
+                : (filters.clientSideCategory && filters.clientSideCategory.trim())
+                    ? filters.clientSideCategory
+                    : undefined;
+            if (categoryToSend) params.append('category', categoryToSend);
             if (filters.page) params.append('page', filters.page.toString());
 
             const response = await fetch(`${API_BASE_URL}/get-filtered-emails?${params.toString()}`);
@@ -82,7 +88,6 @@ class EmailService {
         }
     }
 
-    // Generic error handler kept for potential future reuse
     private handleApiError(error: unknown, context: string): never {
         console.error(`${context}:`, error);
         throw new Error(`${context} failed`);

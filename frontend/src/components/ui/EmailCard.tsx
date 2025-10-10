@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, User, Folder, Tag } from 'lucide-react';
+import { Calendar, User, Folder } from 'lucide-react';
 import { Email } from '../../types/email.types';
 
 interface EmailCardProps {
@@ -36,52 +36,101 @@ export const EmailCard: React.FC<EmailCardProps> = ({
 
     const getFolderColor = (folder: string) => {
         switch (folder) {
-            case 'inbox': return 'bg-blue-100 text-blue-800';
-            case 'sent': return 'bg-green-100 text-green-800';
-            case 'spam': return 'bg-red-100 text-red-800';
-            default: return 'bg-gray-100 text-gray-800';
+            case 'inbox': return { bg: 'var(--accent-blue-light)', color: 'var(--accent-blue)', icon: '📥' };
+            case 'sent': return { bg: 'var(--accent-green-light)', color: 'var(--accent-green)', icon: '📤' };
+            case 'spam': return { bg: 'var(--accent-red-light)', color: 'var(--accent-red)', icon: '🚫' };
+            default: return { bg: 'var(--accent-orange-light)', color: 'var(--accent-orange)', icon: '📁' };
         }
     };
 
+    const getCategoryColor = (category: string | undefined) => {
+        switch (category?.toLowerCase()) {
+            case 'interested': return { bg: 'var(--accent-green-light)', color: 'var(--accent-green)', icon: '✅' };
+            case 'not interested': return { bg: 'var(--accent-red-light)', color: 'var(--accent-red)', icon: '❌' };
+            case 'spam': return { bg: 'var(--accent-red-light)', color: 'var(--accent-red)', icon: '🚫' };
+            case 'meeting booked': return { bg: 'var(--accent-blue-light)', color: 'var(--accent-blue)', icon: '📅' };
+            case 'out of office': return { bg: 'var(--accent-orange-light)', color: 'var(--accent-orange)', icon: '🏠' };
+            default: return { bg: 'var(--accent-red-light)', color: 'var(--accent-red)', icon: '❓' };
+        }
+    };
+
+    const folderStyle = getFolderColor(email.folder);
+    const categoryStyle = getCategoryColor(email.category);
+
     return (
-        <div
-            className={`bg-white rounded-lg border transition-all duration-200 cursor-pointer hover:shadow-md ${isSelected ? 'border-blue-500 shadow-md ring-2 ring-blue-200' : 'border-gray-200 hover:border-gray-300'
+        <article
+            className={`card cursor-pointer transition-all duration-300 group hover:scale-[1.02] ${isSelected ? 'ring-2 ring-offset-2 ring-blue-400' : ''
                 }`}
+            style={{
+                ...(isSelected && {
+                    transform: 'translateY(-2px)',
+                    boxShadow: 'var(--shadow-elevated)'
+                })
+            } as React.CSSProperties}
             onClick={onClick}
+            role="button"
+            tabIndex={0}
+            aria-label={`Email from ${email.from.name || email.from.address}: ${email.subject || 'No subject'}`}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onClick();
+                }
+            }}
         >
-            <div className="p-4">
-                {/* Header */}
-                <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+            <div className="p-6">
+                {/* Enhanced Header */}
+                <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
                     <div className="flex-1 min-w-[200px]">
-                        <h3 className="font-semibold text-gray-900 break-words">
+                        <h3 className="text-subheading font-medium break-words group-hover:text-blue-600 transition-colors"
+                            style={{ color: 'var(--text-primary)' }}>
                             {email.subject || '(No Subject)'}
                         </h3>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-gray-600">
-                            <User className="w-3 h-3 text-gray-400" />
-                            <span className="truncate max-w-[220px]">{email.from.name || email.from.address}</span>
+                        <div className="flex items-center gap-2 mt-2">
+                            <User className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                            <span className="text-body truncate max-w-[250px]" style={{ color: 'var(--text-secondary)' }}>
+                                {email.from.name || email.from.address}
+                            </span>
                         </div>
                     </div>
-                    <div className="flex flex-col items-end gap-2 ml-auto">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm">
-                            <Tag className="w-3 h-3 mr-1" />
+                    <div className="flex flex-col items-end gap-3">
+                        <span
+                            className="inline-flex items-center px-3 py-1 rounded-full text-caption font-medium"
+                            style={{
+                                background: categoryStyle.bg,
+                                color: categoryStyle.color
+                            }}
+                        >
+                            <span className="mr-1">{categoryStyle.icon}</span>
                             {email.category && email.category.trim() !== '' ? email.category : 'Not Interested'}
                         </span>
-                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <div className="flex items-center gap-2 text-caption" style={{ color: 'var(--text-muted)' }}>
                             <Calendar className="w-3 h-3" />
-                            {formatDate(email.date)}
+                            <time dateTime={email.date}>
+                                {formatDate(email.date)}
+                            </time>
                         </div>
                     </div>
                 </div>
 
-                {/* Body Preview */}
-                <p className="text-sm text-gray-700 mb-3 leading-relaxed">
-                    {truncateText(email.body_text || '')}
-                </p>
+                {/* Enhanced Body Preview */}
+                <div className="mb-4">
+                    <p className="text-body leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                        {truncateText(email.body_text || '')}
+                    </p>
+                </div>
 
-                {/* Footer */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getFolderColor(email.folder)}`}>
+                {/* Enhanced Footer */}
+                <div className="flex items-center justify-between pt-4 border-t" style={{ borderColor: 'var(--border-light)' }}>
+                    <div className="flex items-center gap-3">
+                        <span
+                            className="inline-flex items-center px-2 py-1 rounded-md text-caption font-medium"
+                            style={{
+                                background: folderStyle.bg,
+                                color: folderStyle.color
+                            }}
+                        >
+                            <span className="mr-1">{folderStyle.icon}</span>
                             <Folder className="w-3 h-3 mr-1" />
                             {email.folder}
                         </span>
@@ -92,22 +141,33 @@ export const EmailCard: React.FC<EmailCardProps> = ({
                             e.stopPropagation();
                             onReplyClick();
                         }}
-                        className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                        className="btn-primary text-caption px-4 py-2 hover:scale-105 transition-transform"
+                        aria-label={`Reply to email from ${email.from.name || email.from.address}`}
                     >
-                        Reply
+                        💬 Reply
                     </button>
                 </div>
 
-                {/* Account Info */}
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span className="truncate">To: {email.accountId}</span>
+                {/* Enhanced Account Info */}
+                <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--border-light)' }}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <span className="text-caption" style={{ color: 'var(--text-muted)' }}>📧 To:</span>
+                            <span className="text-caption font-medium truncate max-w-[200px]" style={{ color: 'var(--text-secondary)' }}>
+                                {email.accountId}
+                            </span>
+                        </div>
                         {email.to.length > 1 && (
-                            <span>+{email.to.length - 1} more</span>
+                            <span className="text-caption px-2 py-1 rounded-full" style={{
+                                background: 'var(--accent-blue-light)',
+                                color: 'var(--accent-blue)'
+                            }}>
+                                +{email.to.length - 1} more
+                            </span>
                         )}
                     </div>
                 </div>
             </div>
-        </div>
+        </article>
     );
 };

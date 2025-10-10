@@ -8,101 +8,109 @@ const pc = new Pinecone({
 
 
 const knowledgeBase = [
-    // Meeting Booking & Scheduling
+    // Interview Scheduling & Availability
     {
-        id: 'kb-01-demo-link',
-        text: 'Action: When a lead requests a demo, meeting, or call, provide the primary 30-minute booking link: https://cal.com/reachinbox-demo'
+        id: 'kb-01-scheduling-link',
+        text: 'Action: When a recruiter asks to schedule an interview or a quick chat, politely share availability for the next few days. Example: "Sure! I’m available for a quick call on Wednesday or Thursday between 2–6 PM. Please let me know what works best for you."'
     },
     {
-        id: 'kb-02-pricing-call',
-        text: 'Action: If a lead specifically asks about pricing details, offer a shorter 15-minute pricing consultation call: https://cal.com/reachinbox-pricing-consultation'
+        id: 'kb-02-confirm-meeting',
+        text: 'Action: After an interview is scheduled, confirm politely: "Got it, thank you for scheduling! Looking forward to our conversation. I’ll make sure to review the company’s work before the call."'
     },
     {
         id: 'kb-03-suggested-time',
-        text: 'Response: If a lead suggests a specific time to meet instead of using a link, confirm the time with them and send a manual calendar invite immediately.'
+        text: 'Response: If the recruiter suggests a specific time, confirm with appreciation. Example: "That works perfectly, thank you for coordinating. See you at [time/day]!"'
     },
     {
-        id: 'kb-04-confirm-booked-demo',
-        text: 'Action: After a demo is successfully booked, send a confirmation email saying "Looking forward to our chat! I will send over a brief pre-call agenda shortly."'
-    },
-
-    // Product Features & Value
-
-    {
-        id: 'kb-05-core-value-prop',
-        text: 'Product Summary: ReachInbox is an all-in-one, AI-driven platform that automates cold outreach across email, LinkedIn, and Twitter to generate high-intent leads.'
-    },
-    {
-        id: 'kb-06-feature-multi-channel',
-        text: 'Feature Explanation: Our multi-channel capability allows you to create unified outreach sequences that engage prospects on their preferred platform, significantly boosting reply rates.'
-    },
-    {
-        id: 'kb-07-feature-ai-personalization',
-        text: 'Feature Explanation: The AI personalizes each message based on the lead\'s profile and online activity, making every outreach feel unique and relevant, not robotic.'
-    },
-    {
-        id: 'kb-08-feature-lead-verification',
-        text: 'Feature Explanation: ReachInbox includes a built-in lead verification system that cleans your lists and checks email validity to protect your domain reputation and improve deliverability.'
+        id: 'kb-04-reschedule',
+        text: 'Action: If you need to reschedule, be respectful and concise. Example: "Apologies for the short notice — something urgent came up at that time. Would it be possible to move our call to later this week?"'
     },
 
-    // Pricing & Plans
+    // About the Candidate
+    {
+        id: 'kb-05-personal-summary',
+        text: 'Profile Summary: I’m a Computer Science student passionate about building scalable backend systems and AI-integrated products. I’ve worked on projects involving Node.js, Golang, and Next.js, and I enjoy designing real-world systems with clean architecture.'
+    },
+    {
+        id: 'kb-06-key-skills',
+        text: 'Technical Skills: Node.js, Express, Go, PostgreSQL, MongoDB, Redis, Elasticsearch, Docker, AWS, and RESTful APIs. Comfortable with DSA and common problem-solving patterns.'
+    },
+    {
+        id: 'kb-07-project-highlight',
+        text: 'Project Example: Built a distributed ticket-booking microservice system using Node.js and RabbitMQ. Designed for fault-tolerant service communication and scalable event-driven flow.'
+    },
+    {
+        id: 'kb-08-ai-project',
+        text: 'Project Example: Developed an AI-powered mail platform that uses LLMs for email classification, Slack notifications, and RAG-based reply suggestions.'
+    },
 
+    // Responding to Recruiters
     {
-        id: 'kb-09-pricing-inquiry',
-        text: 'Response: For general pricing inquiries, state: "We offer several flexible plans tailored to your team\'s size and needs. Would you be open to a quick 15-minute call to determine the best fit for you?"'
+        id: 'kb-09-reply-to-job-interest',
+        text: 'Response: "Thank you for reaching out! I’m really interested in learning more about this opportunity. Could you please share a bit more about the role and the tech stack your team uses?"'
     },
     {
-        id: 'kb-10-no-price-list',
-        text: 'Information: We do not send a static price list. Pricing is usage-based (per seat, per month) and is best discussed on a call to match features to the client\'s goals.'
-    },
-    // Handling Objections
-    {
-        id: 'kb-11-objection-not-interested',
-        text: 'Response to "Not interested": "I understand. Thanks for the quick response. If you don\'t mind me asking, what is your team currently using for lead generation?"'
+        id: 'kb-10-follow-up-after-apply',
+        text: 'Action: When following up after submitting an application: "Hi [Name], I applied for the [Role] position last week and wanted to check if there’s any update. I’m very enthusiastic about the opportunity to contribute to your team."'
     },
     {
-        id: 'kb-12-objection-competitor',
-        text: 'Response to "We already use another tool": "That\'s great to hear you\'re already leveraging outreach tools. We often complement existing stacks by providing advanced AI personalization that other platforms lack. Would you be open to a 5-minute comparison?"'
+        id: 'kb-11-after-no-reply',
+        text: 'Action: If there’s been no response for a week or two: "Hi [Name], hope you’re doing well. Just following up on my previous email regarding the [Role] position. I’d love to explore how my experience aligns with your team’s goals."'
     },
     {
-        id: 'kb-13-objection-no-budget',
-        text: 'Response to "No budget right now": "Completely understand that timing is key. Many of our clients see a significant ROI within the first quarter. Would it be okay if I reached out again in 3 months to see if things have changed?"'
-    },
-    // Technical & Security
-    {
-        id: 'kb-14-how-ai-works',
-        text: 'Technical Explanation: Our AI uses a combination of generative models and data analysis to scan a prospect\'s public information (like LinkedIn profiles) to craft personalized icebreakers and follow-up messages.'
+        id: 'kb-12-thank-you-interview',
+        text: 'Response: After an interview: "Thank you for the insightful conversation today. I really enjoyed learning more about the role and your team’s work on [specific project/tech]. Looking forward to hearing the next steps!"'
     },
     {
-        id: 'kb-15-crm-integrations',
-        text: 'Technical Information: We offer native integrations with popular CRMs like HubSpot and Salesforce, allowing for seamless lead and activity syncing.'
+        id: 'kb-13-feedback-request',
+        text: 'Action: If you didn’t get selected but want feedback: "Thank you for the update. I appreciate the opportunity to interview. If possible, I’d love to hear any feedback that could help me improve for future roles."'
+    },
+
+    // Handling Common Recruiter Scenarios
+    {
+        id: 'kb-14-internship-timeline',
+        text: 'Information: If asked about availability, respond: "I’m currently available for a full-time internship starting [Month, Year], and can transition to part-time or full-time based on academic schedule."'
     },
     {
-        id: 'kb-16-data-security',
-        text: 'Security Policy: All customer data is encrypted both at rest and in transit. We are fully GDPR and CCPA compliant and do not share or sell any user data.'
-    },
-    // Follow-up & Next Steps
-    {
-        id: 'kb-17-follow-up-no-reply',
-        text: 'Action: If a lead viewed the email but did not reply, send a short follow-up in 3 days: "Hi [Name], just wanted to gently bump this in your inbox. Any thoughts on setting up a quick demo?"'
+        id: 'kb-15-relocation-availability',
+        text: 'Response: If asked about relocation: "I’m open to both remote and in-office opportunities. Relocation is not an issue for the right opportunity."'
     },
     {
-        id: 'kb-18-check-back-later',
-        text: 'Action: If a lead says "Check back in a few months," reply with: "Will do! I\'ll set a reminder to reach out in [Month]. In the meantime, feel free to check out our case studies here: [link]."'
+        id: 'kb-16-salary-expectation',
+        text: 'Response: For internship roles, it’s best to keep it open-ended. "I’m primarily focused on learning and contributing meaningfully. I’m open to discussing compensation based on the company’s structure."'
     },
-    // General Information
+
+    // Follow-Up & Next Steps
     {
-        id: 'kb-19-who-we-are',
-        text: 'Company Information: ReachInbox was founded by a team of sales professionals who were frustrated with manual, ineffective outreach. Our mission is to automate lead generation with intelligent software.'
+        id: 'kb-17-follow-up-after-call',
+        text: 'Action: After a recruiter call: "Thanks for taking the time to speak with me today. I really appreciated learning about [Company]’s vision and culture. Excited about the possibility of contributing to your team!"'
     },
     {
-        id: 'kb-20-job-inquiry',
-        text: 'Action: For any inquiries about joining the team, direct them to our careers page for official openings: https://reachinbox.com/careers'
+        id: 'kb-18-follow-up-after-offer',
+        text: 'Action: After receiving an offer: "Thank you for the offer! I’m genuinely excited about joining [Company]. I’d love to go through the details and timeline whenever convenient."'
+    },
+    {
+        id: 'kb-19-check-in-future',
+        text: 'Action: If a recruiter says to check back later: "Sure! I’ll reconnect around [Month] as suggested. Really appreciate your time, and I’ll keep an eye on future openings."'
+    },
+
+    // General / Miscellaneous
+    {
+        id: 'kb-20-company-research',
+        text: 'Action: Before replying, always check the company’s recent blog posts or product updates to personalize your reply — mentioning something specific often stands out.'
+    },
+    {
+        id: 'kb-21-career-page',
+        text: 'Action: If someone refers you to apply officially, thank them and respond with: "Thank you! I’ll submit my application through the official careers page right away and follow up once done."'
+    },
+    {
+        id: 'kb-22-networking-followup',
+        text: 'Response: After an informal chat or networking intro: "It was great connecting with you. I’ll stay in touch and would love to explore potential collaboration or internship opportunities in the future."'
     }
 ];
 
 
-export const pineconeIndex = pc.Index(process.env.PINECONE_INDEX_NAME || 'reach-inbox-kb', process.env.PINECONE_HOST || '');
+export const pineconeIndex = pc.Index(process.env.PINECONE_INDEX_NAME || 'one-box-kb', process.env.PINECONE_HOST || '');
 
 export const run = async () => {
     try {

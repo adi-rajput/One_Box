@@ -39,7 +39,17 @@ export const EmailDashboard: React.FC = () => {
         try {
             let newEmails: Email[] = [];
             if (searchQuery.trim()) {
-                newEmails = await emailService.searchEmails(searchQuery);
+                // include server-side filters with search
+                const params = new URLSearchParams();
+                params.append('q', searchQuery);
+                if (filters.accountId) params.append('accountId', filters.accountId);
+                if (filters.folder && filters.folder !== 'all') params.append('folder', filters.folder);
+                if (filters.clientSideCategory) params.append('category', filters.clientSideCategory);
+
+                const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/search?${params.toString()}`;
+                const resp = await fetch(url);
+                if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
+                newEmails = await resp.json();
                 // Search results are not paginated
                 setHasMoreEmails(false);
             } else if (filters.accountId || (filters.folder && filters.folder !== 'all')) {
@@ -90,7 +100,6 @@ export const EmailDashboard: React.FC = () => {
         const selected = filters.clientSideCategory?.trim();
         if (!selected) return emailList;
 
-        // Special rule: 'Not Interested' also matches emails with missing/empty category
         if (selected === 'Not Interested') {
             return emailList.filter(email => {
                 const cat = (email.category || '').trim();
@@ -174,40 +183,77 @@ export const EmailDashboard: React.FC = () => {
     const displayEmails = getClientSideFilteredEmails(filteredEmails);
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="fixed top-0 left-0 right-0 z-30 bg-white shadow-sm border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+            {/* Enhanced Header with better spacing and visual hierarchy */}
+            <header className="fixed top-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-b" style={{ borderColor: 'var(--border-light)', background: 'var(--surface)' }}>
+                <div className="max-w-7xl mx-auto px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
-                        <div className="flex items-center gap-3">
-                            <Mail className="w-8 h-8 text-blue-600" />
-                            <h1 className="text-2xl font-bold text-gray-900">ReachInBox</h1>
-                        </div>
                         <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-3">
+                                <Mail className="w-7 h-7" style={{ color: 'var(--accent-blue)' }} />
+                                <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>ReachInBox</h1>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-6">
                             <button
                                 onClick={handleRefresh}
                                 disabled={isLoading}
-                                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    background: 'var(--surface)',
+                                    border: '1px solid var(--border-medium)'
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!isLoading) {
+                                        e.currentTarget.style.background = 'var(--accent-blue-light)';
+                                        e.currentTarget.style.borderColor = 'var(--accent-blue)';
+                                        e.currentTarget.style.color = 'var(--accent-blue)';
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!isLoading) {
+                                        e.currentTarget.style.background = 'var(--surface)';
+                                        e.currentTarget.style.borderColor = 'var(--border-medium)';
+                                        e.currentTarget.style.color = 'var(--text-secondary)';
+                                    }
+                                }}
+                                aria-label="Refresh emails"
                             >
-                                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                                Refresh
+                                <RefreshCw className={`w-4 h-4 transition-transform duration-300 ${isLoading ? 'animate-spin' : ''}`} />
+                                <span className="hidden sm:inline">Refresh</span>
                             </button>
-                            <div className="text-sm text-gray-600">
-                                {displayEmails.length} emails
+                            <div className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                                <span className="hidden sm:inline">
+                                    {displayEmails.length} email{displayEmails.length !== 1 ? 's' : ''}
+                                </span>
+                                <span className="sm:hidden">
+                                    {displayEmails.length}
+                                </span>
                                 {filters.clientSideCategory && (
-                                    <span className="text-purple-600"> (filtered by category)</span>
+                                    <span className="ml-2 px-2 py-1 text-xs rounded-full" style={{
+                                        background: 'var(--accent-blue-light)',
+                                        color: 'var(--accent-blue)'
+                                    }}>
+                                        filtered
+                                    </span>
                                 )}
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </header>
 
-            <div className="lg:hidden pt-16 px-4 py-6 bg-gray-50 border-b border-gray-200">
-                <div className="space-y-4">
+            {/* Mobile Filter Section */}
+            <div className="lg:hidden pt-16 px-6 py-6 border-b animate-fade-in" style={{
+                background: 'var(--surface)',
+                borderColor: 'var(--border-light)'
+            }}>
+                <div className="space-y-6">
                     <SearchBox
                         onSearch={handleSearch}
                         isLoading={isSearching}
-                        placeholder="Search emails by content, subject, or sender..."
+                        placeholder="Search..."
                     />
                     <FilterControls
                         filters={filters}
@@ -217,13 +263,13 @@ export const EmailDashboard: React.FC = () => {
             </div>
 
             <div className="pt-16 flex lg:flex-row flex-col">
-                {/* Fixed Sidebar */}
-                <div className="hidden lg:flex flex-col fixed top-16 left-0 w-80 h-[calc(100vh-4rem)] overflow-y-auto bg-gray-50 border-r border-gray-200 p-6 z-20">
-                    <div className="space-y-6 flex-1">
+                <aside className="hidden lg:flex flex-col fixed top-16 left-0 w-[25%] h-[calc(100vh-4rem)] overflow-y-auto border-r p-6 z-20 animate-slide-in-up"
+                    style={{ background: 'var(--surface)', borderColor: 'var(--border-light)' }}>
+                    <div className="space-y-8 flex-1">
                         <SearchBox
                             onSearch={handleSearch}
                             isLoading={isSearching}
-                            placeholder="Search emails by content, subject, or sender..."
+                            placeholder="Search..."
                         />
 
                         <FilterControls
@@ -231,10 +277,12 @@ export const EmailDashboard: React.FC = () => {
                             onFiltersChange={handleFiltersChange}
                         />
 
-                        {/* Page Navigation */}
-                        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-                            <h3 className="font-semibold text-gray-800 mb-3">Page Navigation</h3>
-                            <div className="space-y-3">
+                        {/* Enhanced Page Navigation */}
+                        <div className="card p-5">
+                            <h3 className="text-subheading mb-4" style={{ color: 'var(--text-primary)' }}>
+                                Page Navigation
+                            </h3>
+                            <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <button
                                         onClick={() => {
@@ -245,96 +293,162 @@ export const EmailDashboard: React.FC = () => {
                                             }
                                         }}
                                         disabled={currentPage <= 1 || isLoading}
-                                        className="flex items-center gap-1 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="btn-secondary"
+                                        aria-label="Go to previous page"
                                     >
                                         <ChevronLeft className="w-4 h-4" />
-                                        Previous
+                                        <span className="hidden sm:inline">Previous</span>
                                     </button>
-                                    <span className="text-sm font-medium text-gray-900">Page {currentPage}</span>
+                                    <span className="text-body font-medium px-3 py-1 rounded-full" style={{
+                                        background: 'var(--accent-blue-light)',
+                                        color: 'var(--accent-blue)'
+                                    }}>
+                                        Page {currentPage}
+                                    </span>
                                     <button
                                         onClick={handleNextPage}
                                         disabled={!hasMoreEmails || isLoading || !!searchQuery}
-                                        className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="btn-primary"
+                                        aria-label="Go to next page"
                                     >
-                                        Next
+                                        <span className="hidden sm:inline">Next</span>
                                         <ChevronRight className="w-4 h-4" />
                                     </button>
                                 </div>
                                 {!hasMoreEmails && !searchQuery && (
-                                    <p className="text-xs text-gray-500 text-center">No more pages (last batch &lt; 100)</p>
+                                    <p className="text-caption text-center py-2" style={{ color: 'var(--text-muted)' }}>
+                                        📄 You&apos;ve reached the last page
+                                    </p>
                                 )}
                                 {searchQuery && (
-                                    <p className="text-xs text-orange-600 text-center">
-                                        Search results don&apos;t support pagination
+                                    <p className="text-caption text-center py-2" style={{ color: 'var(--accent-orange)' }}>
+                                        🔍 Search results don&apos;t support pagination
                                     </p>
                                 )}
                             </div>
                         </div>
 
-                        {/* Stats */}
-                        <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm mb-4">
-                            <h3 className="font-semibold text-gray-800 mb-3">Quick Stats</h3>
-                            <div className="space-y-2 text-sm">
-                                <div className="flex justify-between text-black">
-                                    <span className="text-black">Total Emails:</span>
-                                    <span className="font-medium text-black">{displayEmails.length}</span>
+                        {/* Enhanced Stats Section */}
+                        <div className="card p-5">
+                            <h3 className="text-subheading mb-4" style={{ color: 'var(--text-primary)' }}>
+                                Quick Stats
+                            </h3>
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center py-2">
+                                    <span className="text-body" style={{ color: 'var(--text-secondary)' }}>
+                                        📧 Total Emails
+                                    </span>
+                                    <span className="text-body font-semibold px-2 py-1 rounded" style={{
+                                        color: 'var(--text-primary)',
+                                        background: 'var(--accent-blue-light)'
+                                    }}>
+                                        {displayEmails.length}
+                                    </span>
                                 </div>
-                                <div className="flex justify-between text-black">
-                                    <span className="text-black">Current Page:</span>
-                                    <span className="font-medium text-black">{currentPage}</span>
+                                <div className="flex justify-between items-center py-2">
+                                    <span className="text-body" style={{ color: 'var(--text-secondary)' }}>
+                                        📄 Current Page
+                                    </span>
+                                    <span className="text-body font-semibold px-2 py-1 rounded" style={{
+                                        color: 'var(--text-primary)',
+                                        background: 'var(--accent-green-light)'
+                                    }}>
+                                        {currentPage}
+                                    </span>
                                 </div>
                                 {searchQuery && (
-                                    <div className="pt-2 border-t border-gray-100">
-                                        <span className="text-xs text-blue-600">
-                                            Searching: &quot;{searchQuery}&quot;
-                                        </span>
+                                    <div className="pt-3 border-t" style={{ borderColor: 'var(--border-light)' }}>
+                                        <div className="flex items-start gap-2">
+                                            <span className="text-caption">🔍</span>
+                                            <div>
+                                                <p className="text-caption" style={{ color: 'var(--text-secondary)' }}>
+                                                    Searching for:
+                                                </p>
+                                                <p className="text-body font-medium mt-1 px-2 py-1 rounded" style={{
+                                                    color: 'var(--accent-blue)',
+                                                    background: 'var(--accent-blue-light)'
+                                                }}>
+                                                    &quot;{searchQuery}&quot;
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
                             </div>
                         </div>
                     </div>
-                </div>
-                {/* Main Content Wrapper (adds left margin on large screens to avoid overlap with fixed sidebar) */}
-                <div className="lg:ml-80 w-full px-4 sm:px-6 lg:px-10 py-6">
-                    <div className="max-w-5xl mx-auto">
+                </aside>
+                <main className="lg:ml-80 w-full px-12 lg:pl-20 py-8">
+                    <div className="max-w-6xl mx-auto">
                         {error && (
-                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-                                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                                <div>
-                                    <p className="text-red-800 font-medium">Error</p>
-                                    <p className="text-red-700 text-sm">{error}</p>
+                            <div className="mb-8 p-4 rounded-lg border animate-scale-in" style={{
+                                background: 'var(--accent-red-light)',
+                                borderColor: 'var(--accent-red)'
+                            }}>
+                                <div className="flex items-start gap-3">
+                                    <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--accent-red)' }} />
+                                    <div className="flex-1">
+                                        <p className="font-medium text-body" style={{ color: 'var(--accent-red)' }}>
+                                            Something went wrong
+                                        </p>
+                                        <p className="text-caption mt-1" style={{ color: 'var(--accent-red)' }}>
+                                            {error}
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => setError(null)}
+                                        className="text-caption font-medium px-2 py-1 rounded hover:bg-white/20 transition-colors"
+                                        style={{ color: 'var(--accent-red)' }}
+                                        aria-label="Dismiss error"
+                                    >
+                                        ✕
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={() => setError(null)}
-                                    className="ml-auto text-red-400 hover:text-red-600"
-                                >
-                                    ×
-                                </button>
                             </div>
                         )}
 
                         {isLoading && displayEmails.length === 0 ? (
-                            <div className="flex items-center justify-center py-12">
+                            <div className="flex items-center justify-center py-20 animate-fade-in">
                                 <div className="text-center">
                                     <LoadingSpinner size="lg" />
-                                    <p className="text-gray-600 mt-4">Loading emails...</p>
+                                    <p className="text-body mt-6" style={{ color: 'var(--text-secondary)' }}>
+                                        📬 Loading your emails...
+                                    </p>
+                                    <p className="text-caption mt-2" style={{ color: 'var(--text-muted)' }}>
+                                        This might take a moment
+                                    </p>
                                 </div>
                             </div>
                         ) : displayEmails.length === 0 ? (
-                            <div className="text-center py-12">
-                                <Mail className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">No emails found</h3>
-                                <p className="text-gray-600">
+                            <div className="text-center py-20 animate-fade-in">
+                                <div className="mb-6">
+                                    <Mail className="w-16 h-16 mx-auto mb-4" style={{ color: 'var(--text-muted)' }} />
+                                </div>
+                                <h3 className="text-heading mb-3" style={{ color: 'var(--text-primary)' }}>
+                                    {searchQuery ? '🔍 No search results' : '📭 No emails found'}
+                                </h3>
+                                <p className="text-body max-w-md mx-auto leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                                     {searchQuery
-                                        ? `No emails match your search for \"${searchQuery}\"`
+                                        ? `We couldn't find any emails matching "${searchQuery}". Try adjusting your search terms.`
                                         : filters.clientSideCategory
-                                            ? `No emails match the category filter \"${filters.clientSideCategory}\"`
-                                            : 'Try adjusting your filters or refresh to load emails'
+                                            ? `No emails match the category filter "${filters.clientSideCategory}". Try selecting a different category.`
+                                            : 'Your inbox appears to be empty. Try refreshing or check your filters.'
                                     }
                                 </p>
+                                {(searchQuery || filters.clientSideCategory) && (
+                                    <button
+                                        onClick={() => {
+                                            setSearchQuery('');
+                                            handleFiltersChange({ ...filters, clientSideCategory: '' });
+                                        }}
+                                        className="btn-primary mt-6"
+                                    >
+                                        🔄 Clear filters
+                                    </button>
+                                )}
                             </div>
                         ) : (
-                            <div className="space-y-4">
+                            <div className="space-y-4 animate-slide-in-up">
                                 {displayEmails.map((email, index) => (
                                     <EmailCard
                                         key={`${email.messageId}-${index}`}
@@ -345,14 +459,24 @@ export const EmailDashboard: React.FC = () => {
                                     />
                                 ))}
 
-                                {/* End of results message */}
+                                {/* Enhanced End of Results Message */}
                                 {!hasMoreEmails && !searchQuery && displayEmails.length > 0 && (
-                                    <div className="text-center py-6 text-gray-500 text-sm">Last page reached (fewer than 100 results)</div>
+                                    <div className="text-center py-8">
+                                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{
+                                            background: 'var(--accent-green-light)',
+                                            color: 'var(--accent-green)'
+                                        }}>
+                                            <span>✅</span>
+                                            <span className="text-caption font-medium">
+                                                You&apos;ve reached the end! All emails loaded.
+                                            </span>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         )}
                     </div>
-                </div>
+                </main>
             </div>
 
             <ReplyModal

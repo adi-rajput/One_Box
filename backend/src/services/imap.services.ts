@@ -77,47 +77,47 @@ async function syncAccount(account: ImapAccountConfig) {
     console.log(`[${account.id}] Starting sync for mailbox: ${mailbox}`);
 
     let lock = await client.getMailboxLock(mailbox);
-    try {
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        console.log(`[${account.id}] Performing initial sync for emails since ${thirtyDaysAgo.toISOString()}...`);
+    // try {
+    //     const thirtyDaysAgo = new Date();
+    //     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    //     console.log(`[${account.id}] Performing initial sync for emails since ${thirtyDaysAgo.toISOString()}...`);
 
-        for await (const msg of client.fetch({ since: thirtyDaysAgo }, { uid: true, source: true })) {
-            if (msg.source) {
-                const parsedEmail: ParsedMail = await simpleParser(msg.source);
-                const category = await categorizeEmail({ body_text: parsedEmail.text || '', subject: parsedEmail.subject || '' });
+    //     for await (const msg of client.fetch({ since: thirtyDaysAgo }, { uid: true, source: true })) {
+    //         if (msg.source) {
+    //             const parsedEmail: ParsedMail = await simpleParser(msg.source);
+    //             const category = await categorizeEmail({ body_text: parsedEmail.text || '', subject: parsedEmail.subject || '' });
 
-                const emailDoc = {
-                    accountId: account.auth.user,
-                    uid: msg.uid,
-                    folder: mailbox,
-                    subject: parsedEmail.subject || '',
-                    from: parsedEmail.from?.value[0] || { address: 'unknown' },
-                    to: parsedEmail.to || [],
-                    date: parsedEmail.date?.toISOString() || new Date().toISOString(),
-                    body_text: parsedEmail.text || '',
-                    category
-                };
-                await indexEmail(emailDoc as any);
-                if (emailDoc.category === 'Interested') {
-                    await sendSlackNotification({
-                        subject: emailDoc.subject,
-                        from: emailDoc.from, body_text:
-                            emailDoc.body_text
-                    });
-                    await triggerWebhook({
-                        subject: emailDoc.subject,
-                        from: emailDoc.from, body_text:
-                            emailDoc.body_text
-                    });
-                }
-                await delay(5000);
-            }
-        }
-        console.log(`[${account.id}] Initial 30-day sync complete.`);
-    } finally {
-        lock.release();
-    }
+    //             const emailDoc = {
+    //                 accountId: account.auth.user,
+    //                 uid: msg.uid,
+    //                 folder: mailbox,
+    //                 subject: parsedEmail.subject || '',
+    //                 from: parsedEmail.from?.value[0] || { address: 'unknown' },
+    //                 to: parsedEmail.to || [],
+    //                 date: parsedEmail.date?.toISOString() || new Date().toISOString(),
+    //                 body_text: parsedEmail.text || '',
+    //                 category
+    //             };
+    //             await indexEmail(emailDoc as any);
+    //             if (emailDoc.category === 'Interested') {
+    //                 await sendSlackNotification({
+    //                     subject: emailDoc.subject,
+    //                     from: emailDoc.from, body_text:
+    //                         emailDoc.body_text
+    //                 });
+    //                 await triggerWebhook({
+    //                     subject: emailDoc.subject,
+    //                     from: emailDoc.from, body_text:
+    //                         emailDoc.body_text
+    //                 });
+    //             }
+    //             await delay(5000);
+    //         }
+    //     }
+    //     console.log(`[${account.id}] Initial 30-day sync complete.`);
+    // } finally {
+    //     lock.release();
+    // }
 
     console.log(`[${account.id}] Now listening for new emails...`);
 

@@ -22,7 +22,7 @@ const model = genAI.getGenerativeModel({
             properties: {
                 category: {
                     type: SchemaType.STRING,
-                    description: "One of: Interested, Not Interested, Meeting Booked, Spam, Out of Office"
+                    description: "One of: Interested, Not Interested, Meeting Booked, Spam"
                 }
             },
             required: ["category"]
@@ -39,9 +39,9 @@ export async function categorizeEmail(email: EmailContent) {
     }
 
     const prompt = `
-        You are an expert email classifier for a sales team. 
+        You are an expert email classifier for a student looking for job. 
         Analyze the email's subject and body to classify it into ONE of the following categories: 
-        Interested, Not Interested, Meeting Booked, Spam, Out of Office.
+        Interested, Not Interested, Meeting Booked, Spam.
         
         The JSON output should follow this schema: {"category": "CATEGORY_NAME"}.
 
@@ -59,7 +59,7 @@ export async function categorizeEmail(email: EmailContent) {
         const parsedResult = JSON.parse(responseText);
         const category = parsedResult.category;
 
-        const validCategories: EmailCategory[] = ['Interested', 'Not Interested', 'Meeting Booked', 'Spam', 'Out of Office'];
+        const validCategories: EmailCategory[] = ['Interested', 'Not Interested', 'Meeting Booked', 'Spam'];
         if (validCategories.includes(category)) {
             console.log(`Categorized "${subject}" as: ${category}`);
             return category;

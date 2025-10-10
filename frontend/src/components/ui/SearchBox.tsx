@@ -5,7 +5,7 @@ import { LoadingSpinner } from './LoadingSpinner';
 
 export const SearchBox: React.FC<SearchBoxProps> = ({
     onSearch,
-    placeholder = "Search emails...",
+    placeholder = "Search emails..",
     isLoading = false
 }) => {
     const [query, setQuery] = useState('');
@@ -21,24 +21,35 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
     };
 
     return (
-        <form onSubmit={handleSubmit} className="relative">
+        <form onSubmit={handleSubmit} className="relative group">
             <div className="relative flex items-center">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                {/* <Search
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 transition-colors group-focus-within:text-blue-500"
+                    style={{ color: 'var(--text-muted)' }}
+                /> */}
                 <input
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder={placeholder}
-                    className="w-full pl-10 pr-16 sm:pr-20 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 text-black"
+                    className="form-input pl-12 pr-20 py-3 text-body rounded-lg border transition-all duration-200 focus:scale-[1.02] group-hover:border-blue-300"
+                    style={{
+                        background: 'var(--surface)',
+                        border: '1px solid var(--border-medium)',
+                        color: 'var(--text-primary)'
+                    }}
                     disabled={isLoading}
+                    aria-label="Search emails"
                 />
-                <div className="absolute right-2 flex items-center space-x-2">
+                <div className="absolute right-3 flex items-center space-x-2">
                     {isLoading && <LoadingSpinner size="sm" />}
                     {query && !isLoading && (
                         <button
                             type="button"
                             onClick={handleClear}
-                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                            className="p-1 rounded-full transition-colors hover:bg-gray-100"
+                            style={{ color: 'var(--text-muted)' }}
+                            aria-label="Clear search"
                         >
                             <X className="w-4 h-4" />
                         </button>
@@ -46,9 +57,10 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="px-2 sm:px-3 py-1 bg-blue-600 text-white text-xs sm:text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="btn-primary px-3 py-1.5 text-sm"
+                        aria-label="Search"
                     >
-                        <span className="hidden sm:inline">Search</span>
+                        <span className="hidden sm:inline">🔍</span>
                         <Search className="w-4 h-4 sm:hidden" />
                     </button>
                 </div>

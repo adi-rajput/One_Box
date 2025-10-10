@@ -39,47 +39,70 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
-                {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
-                        <Reply className="w-5 h-5 text-blue-600" />
-                        <h2 className="text-xl font-semibold text-gray-900">Reply to Email</h2>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+            <div className="card-elevated w-full max-w-5xl max-h-[90vh] overflow-hidden animate-scale-in" style={{ background: 'var(--surface-elevated)' }}>
+                {/* Enhanced Header */}
+                <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: 'var(--border-light)' }}>
+                    <div className="flex items-center gap-4">
+                        <div className="p-2 rounded-lg" style={{ background: 'var(--accent-blue-light)' }}>
+                            <Reply className="w-5 h-5" style={{ color: 'var(--accent-blue)' }} />
+                        </div>
+                        <div>
+                            <h2 className="text-heading" style={{ color: 'var(--text-primary)' }}>
+                                💬 Reply to Email
+                            </h2>
+                            <p className="text-caption mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                Generate AI-powered suggestions or write your own
+                            </p>
+                        </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        className="p-2 rounded-lg transition-colors hover:bg-gray-100"
+                        style={{ color: 'var(--text-muted)' }}
+                        aria-label="Close modal"
                     >
                         <X className="w-6 h-6" />
                     </button>
                 </div>
 
-                <div className="flex flex-col sm:flex-row h-[calc(95vh-120px)] sm:h-[calc(90vh-120px)]">
-                    {/* Left Panel - Original Email */}
-                    <div className="w-full sm:w-1/3 border-b sm:border-b-0 sm:border-r border-gray-200 p-4 sm:p-6 overflow-y-auto">
-                        <h3 className="font-semibold text-gray-900 mb-3">Original Email</h3>
-                        <div className="space-y-3">
+                <div className="flex flex-col lg:flex-row h-[calc(90vh-120px)]">
+                    {/* Enhanced Left Panel - Original Email */}
+                    <div className="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r p-6 overflow-y-auto" style={{ borderColor: 'var(--border-light)' }}>
+                        <h3 className="text-subheading mb-4" style={{ color: 'var(--text-primary)' }}>
+                            📧 Original Email
+                        </h3>
+                        <div className="space-y-4">
                             <div>
-                                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Subject</span>
-                                <p className="text-sm text-gray-900 mt-1">{email.subject || '(No Subject)'}</p>
+                                <span className="text-caption font-medium uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                                    Subject
+                                </span>
+                                <p className="text-body mt-1" style={{ color: 'var(--text-primary)' }}>
+                                    {email.subject || '(No Subject)'}
+                                </p>
                             </div>
                             <div>
-                                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">From</span>
-                                <p className="text-sm text-gray-900 mt-1">
+                                <span className="text-caption font-medium uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                                    From
+                                </span>
+                                <p className="text-body mt-1" style={{ color: 'var(--text-primary)' }}>
                                     {email.from.name ? `${email.from.name} <${email.from.address}>` : email.from.address}
                                 </p>
                             </div>
                             <div>
-                                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Date</span>
-                                <p className="text-sm text-gray-900 mt-1">
+                                <span className="text-caption font-medium uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                                    Date
+                                </span>
+                                <p className="text-body mt-1" style={{ color: 'var(--text-primary)' }}>
                                     {new Date(email.date).toLocaleString()}
                                 </p>
                             </div>
                             <div>
-                                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Message</span>
-                                <div className="mt-2 p-3 bg-gray-50 rounded-md">
-                                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                <span className="text-caption font-medium uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                                    Message
+                                </span>
+                                <div className="mt-2 p-4 rounded-lg" style={{ background: 'var(--background)' }}>
+                                    <p className="text-body leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--text-secondary)' }}>
                                         {formatEmailPreview(email.body_text)}
                                     </p>
                                 </div>
@@ -87,112 +110,157 @@ export const ReplyModal: React.FC<ReplyModalProps> = ({
                         </div>
                     </div>
 
-                    {/* Right Panel - Reply Options */}
-                    <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-semibold text-gray-900">Suggested Replies</h3>
+                    {/* Enhanced Right Panel - Reply Options */}
+                    <div className="flex-1 p-6 overflow-y-auto">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-subheading" style={{ color: 'var(--text-primary)' }}>
+                                🤖 AI Suggestions
+                            </h3>
                             <button
                                 onClick={handleGenerateReplies}
                                 disabled={isGenerating}
-                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="btn-primary"
                             >
                                 {isGenerating ? (
                                     <>
-                                        <LoadingSpinner size="sm" className="border-white border-t-transparent" />
-                                        Generating...
+                                        <LoadingSpinner size="sm" color="white" />
+                                        <span>Generating...</span>
                                     </>
                                 ) : (
                                     <>
                                         <Send className="w-4 h-4" />
-                                        Generate Replies
+                                        <span>Generate Replies</span>
                                     </>
                                 )}
                             </button>
                         </div>
 
-                        {/* Reply Suggestions */}
+                        {/* Enhanced Reply Suggestions */}
                         {isGenerating ? (
-                            <div className="flex items-center justify-center py-12">
+                            <div className="flex items-center justify-center py-16 animate-fade-in">
                                 <div className="text-center">
                                     <LoadingSpinner size="lg" />
-                                    <p className="text-gray-600 mt-4">Generating AI-powered reply suggestions...</p>
+                                    <p className="text-body mt-6" style={{ color: 'var(--text-secondary)' }}>
+                                        🧠 Generating AI-powered reply suggestions...
+                                    </p>
+                                    <p className="text-caption mt-2" style={{ color: 'var(--text-muted)' }}>
+                                        This might take a moment
+                                    </p>
                                 </div>
                             </div>
                         ) : replies.length > 0 ? (
-                            <div className="space-y-4 mb-6">
+                            <div className="space-y-4 mb-8 animate-slide-in-up">
                                 {replies.map((reply, index) => (
                                     <div
                                         key={index}
-                                        className={`border rounded-lg p-4 transition-all duration-200 cursor-pointer ${selectedReply === reply
-                                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                        className={`card cursor-pointer transition-all duration-200 hover:scale-[1.02] ${selectedReply === reply ? 'ring-2 ring-blue-400' : ''
                                             }`}
+                                        style={{
+                                            ...(selectedReply === reply && {
+                                                background: 'var(--accent-blue-light)',
+                                                borderColor: 'var(--accent-blue)'
+                                            })
+                                        }}
                                         onClick={() => setSelectedReply(reply)}
                                     >
-                                        <div className="flex items-start justify-between">
-                                            <p className="text-sm text-gray-900 leading-relaxed flex-1 whitespace-pre-wrap">
-                                                {reply}
-                                            </p>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleCopyReply(reply, index);
-                                                }}
-                                                className="ml-3 p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                                                title="Copy reply"
-                                            >
-                                                {copiedIndex === index ? (
-                                                    <span className="text-green-600 text-xs font-medium">Copied!</span>
-                                                ) : (
-                                                    <Copy className="w-4 h-4" />
-                                                )}
-                                            </button>
+                                        <div className="p-4">
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <span className="text-caption px-2 py-1 rounded-full" style={{
+                                                            background: 'var(--accent-green-light)',
+                                                            color: 'var(--accent-green)'
+                                                        }}>
+                                                            🤖 AI Suggestion {index + 1}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-body leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--text-primary)' }}>
+                                                        {reply}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleCopyReply(reply, index);
+                                                    }}
+                                                    className="ml-4 p-2 rounded-lg transition-colors hover:bg-gray-100"
+                                                    style={{ color: 'var(--text-muted)' }}
+                                                    aria-label="Copy reply"
+                                                >
+                                                    {copiedIndex === index ? (
+                                                        <span className="text-caption font-medium px-2 py-1 rounded" style={{
+                                                            background: 'var(--accent-green-light)',
+                                                            color: 'var(--accent-green)'
+                                                        }}>
+                                                            ✅ Copied!
+                                                        </span>
+                                                    ) : (
+                                                        <Copy className="w-4 h-4" />
+                                                    )}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center py-12">
-                                <div className="text-gray-400 mb-2">
-                                    <Reply className="w-8 h-8 mx-auto" />
+                            <div className="text-center py-16 animate-fade-in">
+                                <div className="mb-4">
+                                    <Reply className="w-12 h-12 mx-auto" style={{ color: 'var(--text-muted)' }} />
                                 </div>
-                                <p className="text-gray-600">Click &quot;Generate Replies&quot; to get AI-powered suggestions</p>
+                                <h4 className="text-subheading mb-2" style={{ color: 'var(--text-primary)' }}>
+                                    Ready to generate suggestions
+                                </h4>
+                                <p className="text-body" style={{ color: 'var(--text-secondary)' }}>
+                                    Click &quot;Generate Replies&quot; to get AI-powered suggestions
+                                </p>
                             </div>
                         )}
 
-                        {/* Custom Reply */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Or write your own reply:
+                        {/* Enhanced Custom Reply */}
+                        <div className="border-t pt-6" style={{ borderColor: 'var(--border-light)' }}>
+                            <label className="flex items-center gap-2 text-body font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
+                                ✍️ Write Your Own Reply
                             </label>
                             <textarea
                                 value={customReply}
                                 onChange={(e) => setCustomReply(e.target.value)}
                                 placeholder="Type your custom reply here..."
                                 rows={6}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
+                                className="form-input resize-none"
+                                style={{
+                                    fontFamily: 'inherit',
+                                    lineHeight: '1.6'
+                                }}
                             />
                         </div>
                     </div>
                 </div>
 
-                {/* Footer */}
-                <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
-                    <div className="text-sm text-gray-600">
-                        {replies.length > 0 && `${replies.length} suggestions generated`}
+                {/* Enhanced Footer */}
+                <div className="flex items-center justify-between p-6 border-t" style={{ borderColor: 'var(--border-light)', background: 'var(--background)' }}>
+                    <div className="text-body" style={{ color: 'var(--text-secondary)' }}>
+                        {replies.length > 0 && (
+                            <span className="px-2 py-1 rounded-full" style={{
+                                background: 'var(--accent-green-light)',
+                                color: 'var(--accent-green)'
+                            }}>
+                                ✨ {replies.length} suggestion{replies.length !== 1 ? 's' : ''} generated
+                            </span>
+                        )}
                     </div>
                     <div className="flex gap-3">
                         <button
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                            className="btn-secondary"
                         >
-                            Close
+                            Cancel
                         </button>
                         <button
                             disabled={!selectedReply && !customReply.trim()}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Use Reply
+                            📤 Use Reply
                         </button>
                     </div>
                 </div>

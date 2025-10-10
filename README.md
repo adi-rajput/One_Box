@@ -1,85 +1,131 @@
-## ReachInbox Onebox (Assignment Submission)
+# Onebox
 
-Feature–complete minimal implementation of a multi‑account real‑time email Onebox with search, AI classification, notifications, and RAG reply suggestions.
+A **personal project** born from the frustration of juggling multiple inboxes, missing follow-ups, and manually typing repetitive replies.
+**ReachInbox Onebox** is my attempt to build a minimal, real-time multi-account email dashboard — with built-in AI classification, search, and reply assistance — to make email management *smarter and calmer*.
 
 ---
-## 1. Real‑Time IMAP Email Sync
-Implemented using persistent IMAP connections (ImapFlow) with IDLE events – no cron / polling.
-Highlights:
-* Supports multiple accounts (array in `imap.services.ts`; one active + sample commented for extension)
-* Initial backfill: last 30 days (date filter during `fetch`)
-* Live updates: `client.on('exists')` indexes the newest message immediately
-* Normalized document stored after lightweight parsing (`mailparser`)
 
-Extension ideas (not required but straightforward): add more folders, retry/backoff, OAuth2.
+## What It Does
 
-## 2. Searchable Storage (Elasticsearch)
-* Local ES (Docker) index: default `reachinbox_emails`
-* Auto‑creates index on boot (`indexer()` in `es.config.ts`)
-* Indexed fields: subject, body_text, from.address, to, folder, accountId, category, date, uid
+A feature-complete, minimal Onebox that syncs emails in real-time, classifies them using AI, indexes them for instant search, triggers smart notifications, and even suggests context-aware replies using RAG.
+
+---
+
+## 1. Real-Time IMAP Email Sync
+
+Built with persistent IMAP connections (`ImapFlow`) and live `IDLE` updates — no polling or cron jobs.
+It syncs all inboxes I care about, automatically categorizes new messages, and stores them in Elasticsearch for quick access.
+
+**Highlights:**
+
+* Multi-account support (configurable in `imap.services.ts`)
+* Initial backfill for the last 30 days
+* Real-time message ingestion (`client.on('exists')`)
+* Lightweight parsing via `mailparser`
+
+*(Future idea: add OAuth2, retry/backoff, and multi-folder sync)*
+
+---
+
+## 2. Searchable Email Storage (Elasticsearch)
+
+Every message is indexed for blazing-fast search and filtering.
+
+* Local ES index (`reachinbox_emails`)
+* Auto-creates index on startup
+* Indexed fields: subject, body, from/to, folder, accountId, category, date, uid
 * Endpoints:
-	- `GET /search?q=...` multi_match across key text fields
-	- `GET /get-all-email?page=` paginated (100/doc batch, newest first)
-	- `GET /get-filtered-emails?accountId=&folder=&category=&page=` exact term filtering
 
-## 3. AI Email Categorization
-* Model: Google Gemini (`@google/generative-ai` – model `gemini-2.5-flash-lite`)
-* Categories: Interested, Meeting Booked, Not Interested, Spam, Out of Office
-* JSON‑schema constrained generation + validation fallback
-* Classification performed on every ingested (historical + real‑time) email before indexing
+  * `GET /search?q=...` – full-text multi_match
+  * `GET /get-all-email?page=` – paginated listing (100/page)
+  * `GET /get-filtered-emails?accountId=&folder=&category=&page=` – precise filtering
 
-## 4. Slack & Webhook Integration
-* When category === Interested:
-	- Slack message via Incoming Webhook
-	- External automation webhook (e.g. https://webhook.site) receives JSON payload
-* Graceful no‑op if env vars absent (logs a warning only)
+---
 
-## 5. Frontend Onebox UI (Next.js 15 / React 19)
-* Email list with pagination (ES backend page size 100) & dynamic count
-* Filters: account, folder, client‑side category refinement
-* Full‑text search (disables pagination for clarity)
-* Category chips & quick stats
-* Reply modal with AI suggested replies (Feature 6)
-* Modern responsive layout (sidebar on large screens, adaptive on mobile)
+## 3. AI-Powered Categorization
 
-## 6. AI Suggested Replies (RAG) – Final Interview Feature
-* Vector DB: Pinecone (namespace "general")
-* Knowledge base: curated product + objection handling + scheduling snippets (see `vectordb.config.ts`)
-* Ingestion helper: `run()` (commented by default; run once to upsert KB)
-* Retrieval: semantic search topK=3 → concatenate snippets → Gemini prompt → JSON `{ replies: [...] }`
+Because not every email deserves equal attention.
+
+* Uses **Google Gemini** (`gemini-2.5-flash-lite`)
+* Categories: `Interested`, `Meeting Booked`, `Not Interested`, `Spam`, `Out of Office`
+* JSON-schema validated output with fallback handling
+* Every new or historical email is classified before indexing
+
+---
+
+## 4. Smart Notifications (Slack + Webhook)
+
+If a message is marked as **Interested**, I get notified instantly:
+
+* Slack DM via webhook
+* Automation webhook (e.g. to trigger follow-up tools or custom scripts)
+
+If no webhook is configured, it just logs a friendly warning — no crashes.
+
+---
+
+## 5. Onebox Frontend (Next.js 15 + React 19)
+
+A simple, clean UI that helps me stay on top of what matters.
+
+* Email list with pagination (100/page)
+* Filters by account, folder, category
+* Full-text search across indexed emails
+* Quick stats and category chips
+* AI-powered reply modal for instant responses
+* Responsive layout (sidebar for desktop, adaptive mobile view)
+
+---
+
+## 6. AI Suggested Replies (RAG-Based)
+
+When writing back, I wanted my past notes and snippets to help me.
+This feature combines **semantic search (Pinecone)** and **Gemini** to suggest context-aware replies.
+
+* Pinecone vector DB (`namespace: general`)
+* Curated knowledge base: product info, objection handling, scheduling snippets
+* Retrieval: top-3 semantic matches → Gemini prompt → structured reply suggestions
 * Endpoint: `GET /suggest-replies?subject=&body_text=`
-* Integrated in UI reply modal (up to 3 concise options)
+* Integrated into the UI’s reply modal (up to 3 concise options)
 
 ---
-## High‑Level Architecture
-Backend (Express + TypeScript)
-1. IMAP Sync (ImapFlow) → Parse (mailparser) → Categorize (Gemini) → Index (Elasticsearch)
-2. Notification Pipeline (Slack + Webhook) triggered only for Interested
-3. REST API layer (search, listing, filters, reply suggestions)
-4. RAG Flow: Pinecone semantic search → context → Gemini generation
 
-Frontend (Next.js App Router)
-* `EmailDashboard` orchestrates search/filter/pagination state
-* Service layer wraps fetch calls; env configurable base URL
-* UI components for search, filters, email cards, reply modal
+## Architecture Overview
 
-Data Flow (ingest): IMAP → parse → categorize → index → (notify) → UI queries ES.
+**Backend (Express + TypeScript)**
+
+1. IMAP Sync → Parse → Categorize → Index
+2. Notification pipeline (Slack + Webhooks)
+3. REST API (search, filters, replies)
+4. RAG workflow (Pinecone + Gemini)
+
+**Frontend (Next.js App Router)**
+
+* `EmailDashboard` manages state for search, filters, and pagination
+* Service layer wraps backend APIs
+* Clean UI built around utility and clarity
+
+**Data Flow:**
+`IMAP → Parse → Categorize → Index → (Notify) → Frontend via Elasticsearch`
 
 ---
+
 ## API Summary
-| Endpoint | Query Params | Purpose |
-|----------|--------------|---------|
-| `/get-all-email` | page (default 1) | Paginated inbox (100/page) |
-| `/get-filtered-emails` | accountId, folder, category, page | Precise filtering |
-| `/search` | q | Full‑text search across key fields |
-| `/suggest-replies` | subject, body_text | RAG based reply suggestions |
 
-All responses are JSON arrays or objects; errors return `{ error: "message" }`.
+| Endpoint               | Params                                    | Description                |
+| ---------------------- | ----------------------------------------- | -------------------------- |
+| `/get-all-email`       | `page`                                    | Paginated inbox (100/page) |
+| `/get-filtered-emails` | `accountId`, `folder`, `category`, `page` | Filtered listing           |
+| `/search`              | `q`                                       | Full-text search           |
+| `/suggest-replies`     | `subject`, `body_text`                    | RAG reply suggestions      |
 
 ---
-## Environment Variables
-Backend `.env` (example):
-```
+
+## Environment Setup
+
+### Backend `.env`
+
+```env
 PORT=4000
 ES_PORT=http://localhost:9200
 ES_INDEX=reachinbox_emails
@@ -93,53 +139,53 @@ PINECONE_INDEX_NAME=reach-inbox-kb
 PINECONE_HOST=your-pinecone-host
 ```
 
-Frontend `.env.local`:
-```
+### Frontend `.env.local`
+
+```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
 
 ---
-## Local Setup (Backend)
-1. Install dependencies: `cd backend && npm install`
-2. Start Elasticsearch: `cd elastic-search && docker compose up -d`
-3. Populate Pinecone KB (one time): uncomment `await run();` in `server.ts` then start once
-4. Run server: `npm run dev`
-5. Re-comment `run();` after KB load (avoid duplicate upserts)
 
-## Local Setup (Frontend)
+## Local Setup
+
+### Backend
+
+1. `cd backend && npm install`
+2. Start Elasticsearch: `cd elastic-search && docker compose up -d`
+3. (Optional) Populate Pinecone KB – uncomment `await run();` once in `server.ts`
+4. `npm run dev`
+5. Re-comment `run();` to avoid duplicate upserts
+
+### Frontend
+
 1. `cd frontend && npm install`
 2. `npm run dev`
-3. Open http://localhost:3000
+3. Open `http://localhost:3000`
 
 ---
-## Testing the Features Quickly
-1. Confirm ES index logs “Created index reachinbox_emails” or “exists”
-2. Watch terminal: initial 30‑day sync + per‑email category logs
-3. Send a test email classified as Interested → observe Slack + webhook.site request
-4. Use `/search?q=pricing` to validate full‑text
-5. Open UI → filter by account / folder / category
-6. Open an email → Generate replies (network call to `/suggest-replies`)
+
+## Design Choices & Simplifications
+
+* App passwords instead of OAuth (to focus on core logic)
+* Single mailbox (extendable)
+* Minimal error handling; no retry queue yet
+* Pinecone chosen for simplicity (easily swappable with Qdrant or others)
 
 ---
-## Key Trade‑Offs / Simplifications
-* OAuth flow & token refresh omitted (app passwords assumed)
-* Only INBOX synced (extend by iterating mailboxes)
-* Basic error handling & no retry queue yet
-* Pinecone chosen for rapid semantic setup; could swap for open-source (e.g. Qdrant) if required
+
+## Future Improvements
+
+* OAuth2 login + token rotation
+* Bulk indexing optimization
+* Thread grouping & delivery status
+* WebSocket push updates for live UI
+* Dead-letter queue for webhook failures
 
 ---
-## Possible Next Steps (If More Time)
-* Add delivery status + thread grouping
-* Batch ES bulk indexing for speed
-* Dead‑letter queue for failed categorizations / webhooks
-* OAuth2 + rotating tokens for Gmail / Outlook
-* Websocket push to frontend for near real‑time UI updates
 
----
-## Demo
-See attached submission video (≤5 min) showing: sync logs, search, filters, Slack alert, webhook trigger, RAG reply suggestions.
+## About This Project
 
----
-## Author
-Assignment implementation for ReachInbox Associate Backend Engineer role.
+I built **Onebox** to make my own email workflow less chaotic — a single place that brings together all my accounts, lets AI do the sorting, and gives me smart context before replying.
 
+What started as an experiment in IMAP, Elasticsearch, and AI workflows has become a real personal productivity tool — and a fun playground for integrating real-time sync, search, and RAG in a cohesive system.

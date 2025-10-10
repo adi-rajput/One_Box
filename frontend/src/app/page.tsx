@@ -5,8 +5,10 @@ import { EmailDashboard } from '../components/EmailDashboard';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <EmailDashboard />
+    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+      <main role="main" aria-label="Email Dashboard">
+        <EmailDashboard />
+      </main>
     </div>
   );
 }

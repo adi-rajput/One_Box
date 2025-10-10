@@ -31,9 +31,8 @@ export function useApi<T>(
 
     useEffect(() => {
         fetchData();
-        // dependencies intentionally spread to allow caller-controlled refresh triggers
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [...dependencies, fetchData]);
+    }, [fetchData, ...dependencies]);
 
     return {
         data,
