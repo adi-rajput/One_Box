@@ -3,8 +3,8 @@ import { Filter, User, Folder, Tag } from 'lucide-react';
 import { FilterControlsProps } from '../../types/email.types';
 
 const ACCOUNTS = [
-    'krishsri128@gmail.com',
-    'krish.2022ug3018@iiitranchi.ac.in'
+    'aditya.2022ug3007@iiitranchi.ac.in',
+    'aditya.rajput.career@gmail.com'
 ];
 
 const FOLDERS: { value: 'all' | 'inbox' | 'sent' | 'spam'; label: string; icon: string }[] = [

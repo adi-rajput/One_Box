@@ -135,7 +135,7 @@ app.get("/suggest-replies", async (req: Request, res: Response) => {
 
 async function startServer() {
     try {
-        // await run(); // Pinecone setup(Run to populate the vector DB)
+        //await run(); // Pinecone setup(Run to populate the vector DB)
         await indexer();
         await startImapSync();
         app.listen(PORT, () => {
